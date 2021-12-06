@@ -1,0 +1,4 @@
+*-lock.json
+*.db
+*.py
+node_modules
