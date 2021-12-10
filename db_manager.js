@@ -51,7 +51,7 @@ async function makeDb(){
 
 }
 
-async function selectAllFromTable(table) {
+function selectAllFromTable(table) {
     const db = new Database(vault_db_file, { fileMustExist: true });
 
     const selected = db.prepare(`SELECT * FROM ${table}`).all();
