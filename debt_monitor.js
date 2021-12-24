@@ -1,70 +1,26 @@
 const Web3 = require('web3');
 const fs = require('fs');
 
-const polygon_provider = "https://rpc-mainnet.maticvigil.com/";
-const w3 = new Web3(polygon_provider);
-
-const vaults = JSON.parse(fs.readFileSync('./vault_address/polygon_vaults.json', 'utf8'));
-
-const net = 'polygon';
-
-function getVaultData(net, vault){
-  var vault_json = new Object();
-  var address;
-  var abi;
-  var contract;
-  var vaultCount;
-  var vaultDebtCeiling;
-  var currentDebt;
-  
-  console.log(`vault: ${vault}`)
-  let address = vaults[vault];
-  let abi = JSON.parse(fs.readFileSync(`./vault_abi/${net}_${vault}.json`, 'utf8'));
-  let contract = new w3.eth.Contract(abi, address);
-  let vaultCount = await contract.methods.vaultCount().call();
-  console.log(`vault count ${vaultCount}`);
-  vaultDebtCeiling = await contract.methods.getDebtCeiling.call();
+async function getVaultDebtCeiling(net, vault){
+  providers = JSON.parse(fs.readFileSync('./net_providers/providers.json'));
+  const w3 = new Web3(providers[net]);
+  let vault_addresses = JSON.parse(fs.readFileSync(`./vault_address/${net}_vaults.json`));
+  let vault_adr = vault_addresses[vault];
+  //.log(`address: ${address}`);
+  let mai_contract_data = JSON.parse(fs.readFileSync(`./mai_abi/${net}_mai_abi.json`, 'utf8'));
+  let mai_addr = mai_contract_data['address'];
+  let mai_abi = mai_contract_data['abi'];
+  //console.log(`abi: ${JSON.stringify(abi)}`);
+  let contract = new w3.eth.Contract(mai_abi, mai_addr);
+  var vaultDebtCeiling = await contract.methods.balanceOf(vault_adr).call();
+  console.log(vaultDebtCeiling)
+  vaultDebtCeiling = parseInt(vaultDebtCeiling) * 10**(-18);
   console.log(`debt ceiling: ${vaultDebtCeiling}`);
-  currentDebt = 0;
-  for(var i= 0; i<vaultCount;i++){
-    d = await contract.methods.vaultDebt(i).call();
-    currentDebt += d;
-  }
-    debt[net] = {vault: {'debt_ceiling': vaultDebtCeiling}};
-    debt[net][vault] = {'total_debt': currentDebt};
-    console.log(`debt ${currentDebt}`);
+  return vaultDebtCeiling;
 }
 
-async function searchVaults(){
-  var debt = new Object();
-  var address;
-  var abi;
-  var contract;
-  var vaultCount;
-  var vaultDebtCeiling;
-  var currentDebt;
-  for (var vault in vaults){
-    console.log(`vault: ${vault}`)
-    address = vaults[vault];
-    abi = JSON.parse(fs.readFileSync(`./vault_abi/${net}_${vault}.json`, 'utf8'));
-    contract = new w3.eth.Contract(abi, address);
-    vaultCount = await contract.methods.vaultCount().call();
-    console.log(`vault count ${vaultCount}`);
-    vaultDebtCeiling = await contract.methods.getDebtCeiling.call();
-    console.log(`debt ceiling: ${vaultDebtCeiling}`);
-    currentDebt = 0;
-    for(var i= 0; i<vaultCount;i++){
-      d = await contract.methods.vaultDebt(i).call();
-      currentDebt += d;
-    }
-    debt[net] = {vault: {'debt_ceiling': vaultDebtCeiling}};
-    debt[net][vault] = {'total_debt': currentDebt};
-    console.log(`debt ${currentDebt}`);
-    
-  }
-  fs.writeFileSync('./debts.json', JSON.stringify(debt));
+async function getAllDebtCeilings(){
+  
 }
 
-
-
-searchVaults();
+module.exports.getVaultDebtCeiling = getVaultDebtCeiling;

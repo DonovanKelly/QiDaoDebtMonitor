@@ -1,32 +1,13 @@
 "use strict";
 
 const assert = require('assert');
-const db_mgr = require('../db_manager');
+const dbt_mon = require('../debt_monitor');
 const fs = require('fs');
 
-const db_path = db_mgr.vault_db_file;
-
-describe('Initialize DB', () => {
-    before(() => {
-        if (fs.existsSync(db_path)){
-            console.log("deleting db");
-            fs.unlinkSync(db_path);
-        }
+describe('get debt ceiling', () => {
+    it(`should get the debt ceiling for a specified vault and network`, async () => {
+        assert.strictEqual(typeof await dbt_mon.getVaultDebtCeiling('fantom', 'WETH'), 'number');
+        
     });
-
-    it(`should have a db file named ${db_path}`, async () => {
-        await db_mgr.initDb();
-        assert.equal(fs.existsSync(db_path), true);
-    });
-    
-});
-
-describe('Get DB Data', () => {
-    it(`should have 6 entries in the network table `, async () => {
-        let entries = await db_mgr.selectAllFromTable('network');
-        assert.equal(entries.length,6);
-        console.log(entries);
-    });
-
     
 });

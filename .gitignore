@@ -1,4 +1,4 @@
 *-lock.json
-*.db
-*.py
 node_modules
+api_keys.json
+.env
